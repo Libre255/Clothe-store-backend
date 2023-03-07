@@ -7,6 +7,6 @@
                         
         }
 
-        public DbSet<Clothe> Clothes { get; set; }
+        public DbSet<Clothe> Clothes => Set<Clothe>();
     }
 }

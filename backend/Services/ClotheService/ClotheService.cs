@@ -1,20 +1,21 @@
-﻿using backend.Models;
+﻿using backend.Data;
+using backend.Models;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace backend.Services.ClotheService
 {
     public class ClotheService : IClotheService
     {
-        List<Clothe> _clotheList = new List<Clothe>()
+        private readonly DataContext _context;
+        public ClotheService(DataContext context)
         {
-            new Clothe(),
-            new Clothe(){Name = "Kappa", Id = 1},
-            new Clothe(){Name = "Alpachino", Id = 2}
-        };
+            _context = context;
+        }
         public async Task<ServiceResponse<List<Clothe>>> GetAllClothes()
         {
             var serviceResponse = new ServiceResponse<List<Clothe>>();
-            serviceResponse.Data = _clotheList;
+            var dbClothes = await _context.Clothes.ToListAsync();
+            serviceResponse.Data = dbClothes;
             return serviceResponse;
         }
         public async Task<ServiceResponse<Clothe>> GetClotheById(int id)
@@ -22,7 +23,7 @@ namespace backend.Services.ClotheService
             var serviceResponse = new ServiceResponse<Clothe>();
             try
             {
-                var selectedClothe = _clotheList.FirstOrDefault(item => item.Id == id);
+                var selectedClothe = await _context.Clothes.FirstOrDefaultAsync(item => item.Id == id);
                 if(selectedClothe is null)
                 {
                     throw new Exception($"Could'nt find the following id: {id}");
@@ -38,18 +39,18 @@ namespace backend.Services.ClotheService
         }
         public async Task<ServiceResponse<List<Clothe>>> AddClothe(Clothe newClothe)
         {
-            Clothe IncomingClothe = new()
+            Clothe CreatedClothe = new()
             {
-                Id = _clotheList.Max(item => item.Id) + 1,
                 Name = newClothe.Name,
                 Price = newClothe.Price,
                 Type = newClothe.Type
             };
-            _clotheList.Add(IncomingClothe);
+            _context.Clothes.Add(CreatedClothe);
+            _context.SaveChanges();
+
             var serviceResponse = new ServiceResponse<List<Clothe>>();
-            serviceResponse.Data = _clotheList;
-            serviceResponse.message = $"The clothe with id: {newClothe.Id} and name: {newClothe.Name} has been added";
-            //Save here to
+            serviceResponse.Data = await _context.Clothes.ToListAsync();
+            serviceResponse.message = $"The clothe with name: ({newClothe.Name}), Type: ({newClothe.Type}), Price: ({newClothe.Price})  has been added";
             return serviceResponse;
         }
 
@@ -58,13 +59,15 @@ namespace backend.Services.ClotheService
             var serviceResponse = new ServiceResponse<List<Clothe>>();
             try
             {
-                var response = _clotheList.FirstOrDefault(item => item.Id == id);
-                if(response is null)
+                var response = await _context.Clothes.FirstOrDefaultAsync(item => item.Id == id);
+                if (response is null)
                 {
                     throw new Exception($"The item with id of {id} could'nt be found.");
                 }
-                _clotheList.Remove(response);
-                serviceResponse.Data = _clotheList;
+                _context.Remove(response);
+                _context.SaveChanges();
+                serviceResponse.Data = await _context.Clothes.ToListAsync();
+                serviceResponse.message = $"The item with id of {id} has been succesfull deleted.";
 
             }catch(Exception ErrorMsg)
             {
