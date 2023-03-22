@@ -1,5 +1,6 @@
 ﻿using backend.Models;
 using backend.Services.ClotheService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers
@@ -15,6 +16,7 @@ namespace backend.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         [Route("GetAllClothes")]
         public async Task<ActionResult<ServiceResponse<List<Clothe>>>> GetAllClothes()
         {

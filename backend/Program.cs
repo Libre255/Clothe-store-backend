@@ -2,9 +2,10 @@ global using Microsoft.EntityFrameworkCore;
 global using backend.Models;
 using backend.Services.ClotheService;
 using backend.Data;
-
+using NextjsStaticHosting.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.Configure<NextjsStaticHostingOptions>(builder.Configuration.GetSection("NextjsStaticHosting"));
+builder.Services.AddNextjsStaticHosting();
 // Add services to the container.
 builder.Services.AddDbContext<DataContext>(options => 
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -22,7 +23,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.MapNextjsStaticHtmls();
+app.UseNextjsStaticHosting();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
